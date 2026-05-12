@@ -1,0 +1,16 @@
+[project]
+name = "sql-agent-homework"
+version = "0.1.0"
+description = "DuckDB SQL agent homework for AI Engineering Buildcamp"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb",
+    "pydantic-ai",
+    "pytest>=9.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
