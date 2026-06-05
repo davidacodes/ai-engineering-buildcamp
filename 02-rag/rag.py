@@ -46,3 +46,61 @@ If the answer isn't in the CONTEXT, say so.
 """
 
 RAG_PROMPT_TEMPLATE = """
+<QUESTION>
+{question}
+</QUESTION>
+
+<CONTEXT>
+{context}
+</CONTENT>
+""".strip()
+
+class RAG:
+
+    def __init__(self,
+        index,
+        llm_client,
+        output_type = REGResponse,
+        rag_instructions = RAG_INSTRUCTIONS,
+        model_name='gpt-4o-mini'
+    ):
+        self.index = index
+        self.llm_client = llm_client
+
+        self.output_type = output_type
+        self.rag_instructions = rag_instructions
+        self.model_name = model_name
+
+    def search(self, query):
+        results = self.index.search(
+            query=query,
+            num_results=5
+        )
+        return results
+
+    def build_prompt(self, question, search_results):
+        context = json.dumps(search_results, indent=2)
+        return RAG_PROMPT_TEMPLATE.format(
+            question=question,
+            context=context
+        )
+
+    def llm(self, user_prompt):
+        messages = [
+            {"role": "system", "content": self.rag_instructions},
+            {"role": "user", "content": user_prompt}
+        ]
+
+        response = self.llm_client.responses.parse(
+            model=self.model_name,
+            input=messages,
+            text_format=self.output_type
+        )
+
+        return response.output_parsed
+
+    def rag(self, question):
+        search_results = self.search(question)
+        prompt = self.build_prompt(question, search_results)
+        answer = self.llm(prompt)
+        return answer
